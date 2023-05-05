@@ -1,42 +1,31 @@
 public class MainActivity extends AppCompatActivity {
-
-    ImageView pickImage;
-    Button btn;
-    int SELECT_IMAGE_CODE=1;
-
+    ActivityMainBinding binding;
+    Uri uri;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        binding=ActivityUploadBinding.inflate(getLayoutInflater());
+        setContentView(binding.getRoot());
+        getSupportActionBar().hide();
 
-        btn=findViewById(R.id.btn);
-        pickImage=findViewById(R.id.pickImage);
-
-        btn.setOnClickListener(v -> {
-
-            Intent intent = new Intent(Intent.ACTION_PICK);
-            intent.setType("image/*");
-            startActivityForResult(intent, SELECT_IMAGE_CODE);
-
-            
-            // second method
-//            Intent intent = new Intent();
-  //          intent.setType("image/*");
-    //        intent.setAction(Intent.ACTION_GET_CONTENT);
-      //      startActivityForResult(Intent.createChooser(intent,"Title"),SELECT_IMAGE_CODE);
-            
-            
+        ActivityResultLauncher<Intent> activityResultLauncher = registerForActivityResult(
+                new ActivityResultContracts.StartActivityForResult(),
+                new ActivityResultCallback<ActivityResult>() {
+                    @Override
+                    public void onActivityResult(ActivityResult result) {
+                        if(result.getResultCode() == Activity.RESULT_OK){
+                            Intent data = result.getData();
+                            uri = data.getData();
+                            binding.image.setImageURI(uri);
+                        }else {
+                            Toast.makeText(UploadActivity.this, "No Image Selected", Toast.LENGTH_SHORT).show();
+                        }
+                    }
+                });
+        binding.image.setOnClickListener(v -> {
+            Intent i = new Intent(Intent.ACTION_PICK);
+            i.setType("image/*");
+            activityResultLauncher.launch(i);
         });
-    }
-
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        if (requestCode==1){
-            Uri uri = data.getData();
-            pickImage.setImageURI(uri);
-            btn.setText("Done");
-        }
-
     }
 }
